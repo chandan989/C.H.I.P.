@@ -5,7 +5,7 @@
       "src": "App/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "App/dist"
       }
     },
     {
@@ -19,8 +19,12 @@
       "dest": "Server/server.js"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/App/dist/index.html"
+      "dest": "/index.html"
     }
   ]
 }
