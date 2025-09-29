@@ -12,6 +12,11 @@ app.use(express.json());
 
 const conversationHistories = {};
 
+// Health check route
+app.get('/', (req, res) => {
+    res.send('Server Up and Running');
+});
+
 /**
  * NEW: A specialized prompt for using an AI to parse raw text into JSON.
  */
@@ -63,7 +68,7 @@ const availableTools = [{
     }
 }];
 
-// `/init-chat` endpoint remains largely the same but now uses the resilient API calls
+// `/init-chat` endpoint
 app.post('/init-chat', async (req, res) => {
     try {
         const replicas = await getReplicas();
@@ -76,7 +81,7 @@ app.post('/init-chat', async (req, res) => {
     }
 });
 
-// The completely reworked chat endpoint
+// `/chat` endpoint
 app.post('/chat', async (req, res) => {
     const { replica_uuid, message } = req.body;
 
@@ -85,13 +90,10 @@ app.post('/chat', async (req, res) => {
     }
 
     try {
-        console.log(`Sending message to replica ${replica_uuid}: \"${message}\"`);
+        console.log(`Sending message to replica ${replica_uuid}: "${message}"`);
 
-        // The complex loop is gone. We just make one call.
         const aiResponse = await postToChatCompletions(replica_uuid, message);
 
-        // The Sensay platform handles any internal tool calls and returns the final result.
-        // The response structure is simple: { content: "The AI's final answer." }
         res.json({ response: aiResponse.content });
 
     } catch (error) {
