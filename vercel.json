@@ -16,8 +16,16 @@
       "dest": "Server/server.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/assets/(.*)",
+      "dest": "App/dist/assets/$1"
+    },
+    {
+      "src": "/(.*\\..*)",
       "dest": "App/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "App/dist/index.html"
     }
   ]
 }
