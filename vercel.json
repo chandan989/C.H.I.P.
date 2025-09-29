@@ -3,12 +3,7 @@
   "builds": [
     {
       "src": "App/package.json",
-      "use": "@vercel/static-build",
-      "options": {
-        "installCommand": "cd App && npm install",
-        "buildCommand": "cd App && npm run build",
-        "outputDirectory": "App/dist"
-      }
+      "use": "@vercel/static-build"
     },
     {
       "src": "Server/server.js",
