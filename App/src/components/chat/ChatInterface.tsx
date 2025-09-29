@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { ChatBubble } from './ChatBubble';
 import { ChatInput } from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChatMessage } from '@/types';
+import { ChatMessage, Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
+import { searchProducts, generateSearchSummary } from '@/services/mockProductService';
+import { ProductCard } from './ProductCard';
 
 const welcomeMessage = "Hello! I'm C.H.I.P., your AI commerce companion!"
 const suggestedQueries = [
@@ -14,7 +16,11 @@ const suggestedQueries = [
   "Find me a lightweight laptop for work"
 ];
 
-export const ChatInterface = () => {
+interface ChatInterfaceProps {
+  onAddToCart: (product: Product) => void;
+}
+
+export const ChatInterface = ({ onAddToCart }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -24,13 +30,13 @@ export const ChatInterface = () => {
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializingChat, setIsInitializingChat] = useState(true); // New state for initialization loading
+  const [isInitializingChat, setIsInitializingChat] = useState(true);
   const [replicaUUID, setReplicaUUID] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const initChat = async () => {
-      setIsInitializingChat(true); // Set loading to true when starting initialization
+      setIsInitializingChat(true);
       try {
         const response = await fetch('https://c-h-i-p-server.vercel.app/init-chat', {
           method: 'POST',
@@ -52,7 +58,7 @@ export const ChatInterface = () => {
         };
         setMessages(prev => [...prev, errorMessage]);
       } finally {
-        setIsInitializingChat(false); // Set loading to false after initialization attempt
+        setIsInitializingChat(false);
       }
     };
     initChat();
@@ -135,7 +141,30 @@ export const ChatInterface = () => {
   };
 
   const handleSuggestedQuery = (query: string) => {
-    handleSendMessage(query);
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: query,
+      isUser: true,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      const products = searchProducts(query);
+      const summary = generateSearchSummary(query, products);
+
+      const mockAIResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: summary,
+        isUser: false,
+        timestamp: new Date(),
+        products: products
+      };
+      setMessages(prev => [...prev, mockAIResponse]);
+      setIsLoading(false);
+    }, 2000); // Simulate a 2-second search time
   };
 
   return (
@@ -143,11 +172,23 @@ export const ChatInterface = () => {
       <ScrollArea ref={scrollAreaRef} className="flex-1 px-4 sm:px-6 no-scrollbar">
         <div className="py-6 space-y-8">
           {messages.map((message) => (
-            <ChatBubble
-              key={message.id}
-              message={message.content}
-              isUser={message.isUser}
-            />
+            <div key={message.id}>
+              <ChatBubble
+                message={message.content}
+                isUser={message.isUser}
+              />
+              {message.products && message.products.length > 0 && (
+                <div className="flex flex-col space-y-4 py-4">
+                  {message.products.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={onAddToCart}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
           {isLoading && (
             <ChatBubble
