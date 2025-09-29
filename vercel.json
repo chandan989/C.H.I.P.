@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "App/package.json",
+      "use": "@vercel/static-build",
+      "options": {
+        "installCommand": "cd App && npm install",
+        "buildCommand": "cd App && npm run build",
+        "outputDirectory": "App/dist"
+      }
+    },
+    {
+      "src": "Server/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "Server/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "App/dist/$1"
+    }
+  ]
+}
